@@ -2,8 +2,8 @@
 // Paramètres de connexion
 $host = "localhost";
 $db   = "gestion_app";
-$user = "root";
-$pass = "";
+$user = "admin";
+$pass = "passer123";
 
 // Création de la connexion avec PDO
 try {
