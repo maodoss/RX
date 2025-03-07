@@ -96,6 +96,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </style>
 </head>
 <body>
+<!-- Début de la barre de navigation -->
+<nav class="navbar">
+    <ul>
+        <li><a href="../index.php">Accueil</a></li>
+        <li><a href="../employe/index.php">Employés</a></li>
+        <li><a href="../clients/index.php">Clients</a></li>
+        <li><a href="../documents/index.php">Documents</a></li>
+    </ul>
+</nav>
+
+<style>
+    .navbar {
+        background-color: #2c3e50;
+        padding: 10px;
+    }
+    .navbar ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+    }
+    .navbar li {
+        margin-right: 20px;
+    }
+    .navbar a {
+        color: #fff;
+        text-decoration: none;
+        font-weight: bold;
+    }
+    .navbar a:hover {
+        text-decoration: underline;
+    }
+</style>
+<!-- Fin de la barre de navigation -->
 <div class="container">
     <h1>Ajouter un Client</h1>
     <?php if (!empty($message)): ?>

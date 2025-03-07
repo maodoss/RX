@@ -3,38 +3,49 @@
 require_once '../config/database.php';  // Ajustez le chemin si nécessaire
 
 $message = "";
+$uploadDir = '../uploads/';
 
-// Traitement du formulaire
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Récupération des données
-    $titre       = !empty($_POST['titre']) ? trim($_POST['titre']) : null;
+    // Récupération de la description saisie par l'utilisateur
     $description = !empty($_POST['description_fichier']) ? trim($_POST['description_fichier']) : null;
-    $chemin      = !empty($_POST['chemin_fichier']) ? trim($_POST['chemin_fichier']) : null;
-    $type        = !empty($_POST['type_fichier']) ? trim($_POST['type_fichier']) : null;
-    $relatedTo   = !empty($_POST['related_to']) ? trim($_POST['related_to']) : null;   // 'employee' ou 'client'
-    $relatedId   = !empty($_POST['related_id']) ? intval($_POST['related_id']) : 0;    // ID correspondant
-    $uploadedBy  = !empty($_POST['uploaded_by']) ? intval($_POST['uploaded_by']) : null;  
 
-    try {
-        $sql = "INSERT INTO documents (titre, description_fichier, chemin_fichier, type_fichier, related_to, related_id, uploaded_by)
-                VALUES (:titre, :description, :chemin, :type, :related_to, :related_id, :uploaded_by)";
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute([
-            ':titre'       => $titre,
-            ':description' => $description,
-            ':chemin'      => $chemin,
-            ':type'        => $type,
-            ':related_to'  => $relatedTo,
-            ':related_id'  => $relatedId,
-            ':uploaded_by' => $uploadedBy
-        ]);
+    // Vérification de l'upload du fichier
+    if (isset($_FILES['chemin_fichier']) && $_FILES['chemin_fichier']['error'] === UPLOAD_ERR_OK) {
+        $tmpName = $_FILES['chemin_fichier']['tmp_name'];
+        $originalFileName = $_FILES['chemin_fichier']['name'];  // Titre du document
+        $fileType = $_FILES['chemin_fichier']['type'];
 
-        $message = "Document ajouté avec succès !";
-        // Redirection possible
-        // header("Location: index.php");
-        // exit;
-    } catch (PDOException $e) {
-        $message = "Erreur lors de l'ajout : " . $e->getMessage();
+        // Pour éviter les collisions, on peut préfixer le nom avec un identifiant unique
+        $uniquePrefix = date('YmdHis') . '_' . uniqid();
+        $fileName = $uniquePrefix . '_' . $originalFileName;
+        $finalPath = $uploadDir . $fileName;
+
+        // Déplacer le fichier dans le dossier uploads/
+        if (move_uploaded_file($tmpName, $finalPath)) {
+            try {
+                // Insertion en base de données
+                // Le titre est le nom original du fichier, et le chemin est le chemin final.
+                $sql = "INSERT INTO documents (titre, description_fichier, chemin_fichier)
+                        VALUES (:titre, :description, :chemin)";
+                $stmt = $pdo->prepare($sql);
+                $stmt->execute([
+                    ':titre'       => $originalFileName,
+                    ':description' => $description,
+                    ':chemin'      => $finalPath
+                ]);
+
+                $message = "Document ajouté avec succès !";
+                // Vous pouvez rediriger si nécessaire, par exemple :
+                // header("Location: index.php");
+                // exit;
+            } catch (PDOException $e) {
+                $message = "Erreur lors de l'ajout en base : " . $e->getMessage();
+            }
+        } else {
+            $message = "Erreur : Impossible de déplacer le fichier dans $uploadDir.";
+        }
+    } else {
+        $message = "Aucun fichier sélectionné ou erreur lors de l'upload.";
     }
 }
 ?>
@@ -50,6 +61,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             margin: 0; 
             padding: 20px;
         }
+        /* Barre de navigation */
+        .navbar {
+            background-color: #2c3e50;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+        .navbar ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+        }
+        .navbar li {
+            margin-right: 20px;
+        }
+        .navbar a {
+            color: #fff;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .navbar a:hover {
+            text-decoration: underline;
+        }
+        /* Conteneur principal */
         .container {
             background: #fff;
             padding: 20px;
@@ -66,24 +101,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             margin: 15px 0;
             color: green;
         }
+        /* Styles du formulaire */
         form {
             display: flex;
             flex-direction: column;
         }
-        label {
+        form label {
             margin-top: 10px;
             font-weight: bold;
             color: #555;
         }
-        input[type="text"],
-        textarea,
-        select {
+        form input[type="file"],
+        form textarea {
             padding: 8px;
             margin-top: 5px;
             border: 1px solid #ccc;
             border-radius: 4px;
         }
-        button {
+        form textarea {
+            resize: vertical;
+        }
+        form button {
             margin-top: 20px;
             padding: 10px 15px;
             background: #1e88e5;
@@ -93,43 +131,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             cursor: pointer;
             font-size: 1rem;
         }
-        button:hover {
+        form button:hover {
             background: #1565c0;
         }
     </style>
 </head>
 <body>
+<!-- Barre de navigation -->
+<nav class="navbar">
+    <ul>
+        <li><a href="../index.php">Accueil</a></li>
+        <li><a href="../employe/index.php">Employés</a></li>
+        <li><a href="../clients/index.php">Clients</a></li>
+        <li><a href="../documents/index.php">Documents</a></li>
+    </ul>
+</nav>
+
 <div class="container">
     <h1>Ajouter un Document</h1>
     <?php if (!empty($message)): ?>
         <div class="message"><?php echo htmlspecialchars($message); ?></div>
     <?php endif; ?>
 
-    <form action="" method="post">
-        <label>Titre :</label>
-        <input type="text" name="titre" required>
+    <!-- Formulaire d'upload avec description -->
+    <form action="" method="post" enctype="multipart/form-data">
+        <label>Fichier à uploader :</label>
+        <input type="file" name="chemin_fichier" required>
 
         <label>Description :</label>
         <textarea name="description_fichier" rows="3"></textarea>
-
-        <label>Chemin du fichier :</label>
-        <input type="text" name="chemin_fichier" required>
-
-        <label>Type de fichier :</label>
-        <input type="text" name="type_fichier" placeholder="Ex: pdf, docx, image...">
-
-        <label>Related To :</label>
-        <select name="related_to" required>
-            <option value="">-- Sélectionnez --</option>
-            <option value="employee">employee</option>
-            <option value="client">client</option>
-        </select>
-
-        <label>Related ID :</label>
-        <input type="number" name="related_id" min="1">
-
-        <label>Uploaded By (employe_id) :</label>
-        <input type="number" name="uploaded_by" min="1">
 
         <button type="submit">Ajouter</button>
     </form>
