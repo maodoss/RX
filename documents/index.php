@@ -14,7 +14,7 @@ $ftp_conn = ftp_connect($ftp_server);
 
 if ($ftp_conn && ftp_login($ftp_conn, $ftp_user, $ftp_password)) {
     ftp_pasv($ftp_conn, true); // Mode passif si nécessaire
-    
+    echo"connexion reussie";
     // Récupération de la liste des fichiers du répertoire
     $files = ftp_nlist($ftp_conn, $ftp_upload_dir);
     
