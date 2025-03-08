@@ -11,8 +11,16 @@ $message = "";
 
 // Connexion au serveur FTP
 $ftp_conn = ftp_connect($ftp_server);
+if (!$ftp_conn) {
+    die("Échec de la connexion au serveur FTP.");
+}
+if (!ftp_login($ftp_conn, $ftp_user, $ftp_password)) {
+    die("Échec de l'authentification FTP.");
+}
+
 
 if ($ftp_conn && ftp_login($ftp_conn, $ftp_user, $ftp_password)) {
+
     ftp_pasv($ftp_conn, true); // Mode passif si nécessaire
     echo"connexion reussie";
     // Récupération de la liste des fichiers du répertoire
