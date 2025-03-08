@@ -1,5 +1,8 @@
 <?php
 // documents/index.php
+echo "<pre>";
+    print_r($_FILES['file']);
+    echo "</pre>";
 
 // Paramètres FTP
 $ftp_server = "192.168.1.11";
