@@ -1,48 +1,40 @@
 <?php
 // documents/create.php
-require_once '../config/database.php';  // Ajustez le chemin si nécessaire
+require_once '../config/database.php';  // Ajustez si nécessaire
 
 $message = "";
-$uploadDir = '../uploads/';
+$uploadDir = '../uploads/'; // Ce dossier ne sera plus utilisé pour stocker les fichiers
+
+// Paramètres FTP
+$ftp_server = "192.168.1.11";
+$ftp_user = "ftpuser1";
+$ftp_password = "passer";
+$ftp_upload_dir = "/home/ftpuser1/ftp"; // Répertoire distant où stocker les fichiers
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Récupération de la description saisie par l'utilisateur
-    $description = !empty($_POST['description_fichier']) ? trim($_POST['description_fichier']) : null;
-
     // Vérification de l'upload du fichier
     if (isset($_FILES['chemin_fichier']) && $_FILES['chemin_fichier']['error'] === UPLOAD_ERR_OK) {
         $tmpName = $_FILES['chemin_fichier']['tmp_name'];
-        $originalFileName = $_FILES['chemin_fichier']['name'];  // Titre du document
-        $fileType = $_FILES['chemin_fichier']['type'];
-
-        // Pour éviter les collisions, on peut préfixer le nom avec un identifiant unique
-        $uniquePrefix = date('YmdHis') . '_' . uniqid();
-        $fileName = $uniquePrefix . '_' . $originalFileName;
-        $finalPath = $uploadDir . $fileName;
-
-        // Déplacer le fichier dans le dossier uploads/
-        if (move_uploaded_file($tmpName, $finalPath)) {
-            try {
-                // Insertion en base de données
-                // Le titre est le nom original du fichier, et le chemin est le chemin final.
-                $sql = "INSERT INTO documents (titre, description_fichier, chemin_fichier)
-                        VALUES (:titre, :description, :chemin)";
-                $stmt = $pdo->prepare($sql);
-                $stmt->execute([
-                    ':titre'       => $originalFileName,
-                    ':description' => $description,
-                    ':chemin'      => $finalPath
-                ]);
-
-                $message = "Document ajouté avec succès !";
-                // Vous pouvez rediriger si nécessaire, par exemple :
-                // header("Location: index.php");
-                // exit;
-            } catch (PDOException $e) {
-                $message = "Erreur lors de l'ajout en base : " . $e->getMessage();
+        $originalFileName = $_FILES['chemin_fichier']['name'];
+        
+        // Connexion au serveur FTP
+        $ftp_conn = ftp_connect($ftp_server);
+        
+        if ($ftp_conn && ftp_login($ftp_conn, $ftp_user, $ftp_password)) {
+            ftp_pasv($ftp_conn, true); // Activation du mode passif si nécessaire
+            $remoteFile = $ftp_upload_dir . $originalFileName;
+            
+            // Envoi du fichier via FTP
+            if (ftp_put($ftp_conn, $remoteFile, $tmpName, FTP_BINARY)) {
+                $message = "Document transféré avec succès sur le serveur FTP.";
+            } else {
+                $message = "Erreur : Impossible de transférer le fichier vers le serveur FTP.";
             }
+            
+            // Fermeture de la connexion FTP
+            ftp_close($ftp_conn);
         } else {
-            $message = "Erreur : Impossible de déplacer le fichier dans $uploadDir.";
+            $message = "Erreur : Connexion au serveur FTP échouée.";
         }
     } else {
         $message = "Aucun fichier sélectionné ou erreur lors de l'upload.";
@@ -61,7 +53,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             margin: 0; 
             padding: 20px;
         }
-        /* Barre de navigation */
         .navbar {
             background-color: #2c3e50;
             padding: 10px;
@@ -81,10 +72,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             text-decoration: none;
             font-weight: bold;
         }
-        .navbar a:hover {
-            text-decoration: underline;
-        }
-        /* Conteneur principal */
         .container {
             background: #fff;
             padding: 20px;
@@ -101,7 +88,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             margin: 15px 0;
             color: green;
         }
-        /* Styles du formulaire */
         form {
             display: flex;
             flex-direction: column;
@@ -117,9 +103,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             margin-top: 5px;
             border: 1px solid #ccc;
             border-radius: 4px;
-        }
-        form textarea {
-            resize: vertical;
         }
         form button {
             margin-top: 20px;
@@ -137,7 +120,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </style>
 </head>
 <body>
-<!-- Barre de navigation -->
 <nav class="navbar">
     <ul>
         <li><a href="../index.php">Accueil</a></li>
@@ -152,15 +134,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <?php if (!empty($message)): ?>
         <div class="message"><?php echo htmlspecialchars($message); ?></div>
     <?php endif; ?>
-
-    <!-- Formulaire d'upload avec description -->
     <form action="" method="post" enctype="multipart/form-data">
         <label>Fichier à uploader :</label>
         <input type="file" name="chemin_fichier" required>
-
-        <label>Description :</label>
-        <textarea name="description_fichier" rows="3"></textarea>
-
         <button type="submit">Ajouter</button>
     </form>
 </div>

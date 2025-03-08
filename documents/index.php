@@ -1,16 +1,45 @@
 <?php
 // documents/index.php
-require_once '../config/database.php';  // Ajustez le chemin si nécessaire
 
-try {
-    // Récupérer tous les documents en ne sélectionnant que les champs nécessaires
-    $stmt = $pdo->query("SELECT document_id, titre, description_fichier, chemin_fichier, date_upload 
-                         FROM documents
-                         ORDER BY document_id DESC");
-    $documents = $stmt->fetchAll(PDO::FETCH_ASSOC);
-} catch (PDOException $e) {
-    die("Erreur lors de la récupération des documents : " . $e->getMessage());
+// Paramètres FTP
+$ftp_server = "192.168.1.11";
+$ftp_user = "ftpuser1";
+$ftp_password = "passer";
+$ftp_upload_dir = "/home/ftpuser1/ftp"; // Répertoire distant où stocker les fichiers
+
+$message = "";
+
+// Connexion au serveur FTP
+$ftp_conn = ftp_connect($ftp_server);
+
+if ($ftp_conn && ftp_login($ftp_conn, $ftp_user, $ftp_password)) {
+    ftp_pasv($ftp_conn, true); // Mode passif si nécessaire
+    
+    // Récupération de la liste des fichiers du répertoire
+    $files = ftp_nlist($ftp_conn, $ftp_upload_dir);
+    
+    if ($files === false) {
+        $message = "Impossible de récupérer la liste des fichiers.";
+        $files = [];
+    }
+} else {
+    die("Erreur : Connexion au serveur FTP échouée.");
 }
+
+// Suppression d'un fichier si demandé
+if (isset($_GET['delete'])) {
+    $fileToDelete = $ftp_upload_dir . basename($_GET['delete']);
+    if (ftp_delete($ftp_conn, $fileToDelete)) {
+        $message = "Fichier supprimé avec succès.";
+    } else {
+        $message = "Erreur lors de la suppression du fichier.";
+    }
+    header("Location: index.php");
+    exit;
+}
+
+// Fermeture de la connexion FTP
+ftp_close($ftp_conn);
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -24,9 +53,7 @@ try {
             margin: 0; 
             padding: 20px; 
         }
-        h1 { 
-            color: #333; 
-        }
+        h1 { color: #333; }
         .container { 
             background: #fff; 
             padding: 20px; 
@@ -45,16 +72,9 @@ try {
             padding: 8px; 
             text-align: left;
         }
-        th { 
-            background: #f0f0f0; 
-        }
-        a { 
-            text-decoration: none; 
-            color: #1e88e5; 
-        }
-        a:hover { 
-            text-decoration: underline; 
-        }
+        th { background: #f0f0f0; }
+        a { text-decoration: none; color: #1e88e5; }
+        a:hover { text-decoration: underline; }
         .btn-create {
             display: inline-block; 
             margin-top: 10px; 
@@ -63,9 +83,7 @@ try {
             color: #fff; 
             border-radius: 4px;
         }
-        .btn-create:hover { 
-            background: #1565c0; 
-        }
+        .btn-create:hover { background: #1565c0; }
 
         /* Barre de navigation */
         .navbar {
@@ -106,37 +124,29 @@ try {
 
 <div class="container">
     <h1>Liste des Documents</h1>
-    <a href="create.php" class="btn-create">+ Ajouter un document</a>
+    <a href="create.php" class="btn-create">+ Uploader un document</a>
+    <?php if (!empty($message)): ?>
+        <div class="message"><?php echo htmlspecialchars($message); ?></div>
+    <?php endif; ?>
     
     <table>
         <tr>
-            <th>ID</th>
-            <th>Titre</th>
-            <th>Description</th>
-            <th>Chemin</th>
-            <th>Date d'upload</th>
+            <th>Nom du fichier</th>
             <th>Actions</th>
         </tr>
-        <?php if (!empty($documents)) : ?>
-            <?php foreach ($documents as $doc) : ?>
+        <?php if (!empty($files)) : ?>
+            <?php foreach ($files as $file) : ?>
                 <tr>
-                    <td><?= $doc['document_id'] ?></td>
-                    <td><?= htmlspecialchars($doc['titre']) ?></td>
-                    <td><?= htmlspecialchars($doc['description_fichier']) ?></td>
-                    <td><?= htmlspecialchars($doc['chemin_fichier']) ?></td>
-                    <td><?= $doc['date_upload'] ?></td>
+                    <td><?= htmlspecialchars(basename($file)) ?></td>
                     <td>
-                        <a href="update.php?id=<?= $doc['document_id'] ?>">Modifier</a> | 
-                        <a href="delete.php?id=<?= $doc['document_id'] ?>"
-                           onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce document ?');">
-                           Supprimer
-                        </a> | 
-                        <a class="view-link" href="<?= htmlspecialchars($doc['chemin_fichier']) ?>" target="_blank">Visualiser</a>
+                        <a href="ftp://<?= $ftp_user ?>:<?= $ftp_password ?>@<?= $ftp_server . $file ?>" target="_blank">Visualiser</a> |
+                        <a href="ftp://<?= $ftp_user ?>:<?= $ftp_password ?>@<?= $ftp_server . $file ?>" download>Télécharger</a> |
+                        <a href="?delete=<?= urlencode(basename($file)) ?>" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce document ?');">Supprimer</a>
                     </td>
                 </tr>
             <?php endforeach; ?>
         <?php else: ?>
-            <tr><td colspan="6">Aucun document trouvé.</td></tr>
+            <tr><td colspan="2">Aucun document trouvé sur le serveur FTP.</td></tr>
         <?php endif; ?>
     </table>
 </div>
