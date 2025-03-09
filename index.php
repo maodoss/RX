@@ -23,13 +23,37 @@ try {
     // idem
 }
 
-// Récupération du nombre de documents
-try {
-    $stmt = $pdo->query("SELECT COUNT(*) AS count FROM documents");
-    $document_count = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
-} catch (PDOException $e) {
-    // idem
+// Récupération du nombre de documents depuis le serveur FTP
+$ftp_server = "192.168.1.11";  // Remplacez par l'adresse de votre serveur FTP
+$ftp_username = "ftpuser1";  // Remplacez par votre nom d'utilisateur FTP
+$ftp_password = "passer";  // Remplacez par votre mot de passe FTP
+
+// Connexion au serveur FTP
+$ftp_conn = ftp_connect($ftp_server) or die("Impossible de se connecter à $ftp_server");
+
+// Connexion avec les identifiants
+$login = ftp_login($ftp_conn, $ftp_username, $ftp_password);
+
+// Vérifier la connexion
+if (!$login) {
+    echo "Impossible de se connecter au serveur FTP.";
+    exit();
 }
+
+// Spécifier le répertoire contenant les documents
+$ftp_directory = "/home/ftpuser1/ftp"; 
+
+// Changer de répertoire
+ftp_chdir($ftp_conn, $ftp_directory);
+
+// Récupérer la liste des fichiers dans le répertoire
+$documents = ftp_nlist($ftp_conn, ".");
+
+// Compter le nombre de fichiers
+$document_count = count($documents);
+
+// Fermer la connexion FTP
+ftp_close($ftp_conn);
 ?>
 
 <!DOCTYPE html>
@@ -49,10 +73,56 @@ try {
             background: #2c3e50;
             color: #fff;
             padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         header h1 {
             margin: 0;
         }
+
+        /* --- Barre de navigation --- */
+        nav {
+            display: flex;
+            gap: 20px;
+        }
+
+        nav .nav-item {
+            position: relative;
+        }
+
+        nav .nav-link {
+            color: white;
+            text-decoration: none;
+            font-size: 16px;
+        }
+
+        nav .nav-link:hover {
+            color: #3498db; /* Couleur au survol */
+        }
+
+        /* --- Tooltip (texte explicatif) --- */
+        nav .tooltip {
+            visibility: hidden;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 100%;
+            left: 50%;
+            margin-left: -60px; /* Décalage pour centrer le tooltip */
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        nav .nav-item:hover .tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+
         .container {
             width: 90%;
             max-width: 1000px;
@@ -155,6 +225,17 @@ try {
 
 <header>
     <h1>Système de Gestion</h1>
+    <!-- Barre de navigation -->
+    <nav>
+        <div class="nav-item">
+            <a href="mail.smarttechh.sn/iredamin" target="_blank" class="nav-link">iRedAdmin</a>
+            <span class="tooltip">Accédez à l'administration d'iRedMail</span>
+        </div>
+        <div class="nav-item">
+            <a href="mail.smarttech.sn/mail" target="_blank" class="nav-link">Boite Mail</a>
+            <span class="tooltip">Accédez à la boîte mail via Roundcube</span>
+        </div>
+    </nav>
 </header>
 
 <div class="container">
