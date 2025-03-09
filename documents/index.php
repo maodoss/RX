@@ -8,7 +8,7 @@ $ftp_server = "192.168.1.11";
 $ftp_user = "ftpuser1";
 $ftp_password = "passer";
 $ftp_upload_dir = "/home/ftpuser1/ftp/"; // Répertoire distant où stocker les fichiers
-$local_download_dir = "../downloads/"; // Répertoire local où les fichiers seront téléchargés
+$local_download_dir = "/var/www/html/gestionApp/downloads/"; // Répertoire local où les fichiers seront téléchargés
 
 $message = "";
 
@@ -165,7 +165,6 @@ ftp_close($ftp_conn);
                     <td><?= htmlspecialchars(basename($file)) ?></td>
                     <td>
                         <a href="ftp://<?= $ftp_user ?>:<?= $ftp_password ?>@<?= $ftp_server . $file ?>" target="_blank">Visualiser</a> |
-                        <a href="ftp://<?= $ftp_user ?>:<?= $ftp_password ?>@<?= $ftp_server . $file ?>" download>Télécharger</a> |
                         <a href="?download=<?= urlencode(basename($file)) ?>" onclick="return confirm('Êtes-vous sûr de vouloir télécharger ce document ?');">Télécharger</a> |
                         <a href="?delete=<?= urlencode(basename($file)) ?>" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce document ?');">Supprimer</a>
                     </td>
