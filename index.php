@@ -228,11 +228,11 @@ ftp_close($ftp_conn);
     <!-- Barre de navigation -->
     <nav>
         <div class="nav-item">
-            <a href="mail.smarttechh.sn/iredamin" target="_blank" class="nav-link">iRedAdmin</a>
+            <a href="https://mail.smarttech.sn/iredadmin" target="_blank" class="nav-link">iRedAdmin</a>
             <span class="tooltip">Accédez à l'administration d'iRedMail</span>
         </div>
         <div class="nav-item">
-            <a href="mail.smarttech.sn/mail" target="_blank" class="nav-link">Boite Mail</a>
+            <a href="https://mail.smarttech.sn/mail" target="_blank" class="nav-link">Boite Mail</a>
             <span class="tooltip">Accédez à la boîte mail via Roundcube</span>
         </div>
     </nav>
