@@ -8,6 +8,7 @@ $ftp_server = "192.168.1.11";
 $ftp_user = "ftpuser1";
 $ftp_password = "passer";
 $ftp_upload_dir = "/home/ftpuser1/ftp/"; // Répertoire distant où stocker les fichiers
+$local_download_dir = "../downloads/"; // Répertoire local où les fichiers seront téléchargés
 
 $message = "";
 
@@ -19,7 +20,6 @@ if (!$ftp_conn) {
 if (!ftp_login($ftp_conn, $ftp_user, $ftp_password)) {
     die("Échec de l'authentification FTP.");
 }
-
 
 if ($ftp_conn && ftp_login($ftp_conn, $ftp_user, $ftp_password)) {
 
@@ -47,9 +47,25 @@ if (isset($_GET['delete'])) {
     exit;
 }
 
+// Téléchargement d'un fichier si demandé
+if (isset($_GET['download'])) {
+    $fileToDownload = $ftp_upload_dir . basename($_GET['download']);
+    $local_file = $local_download_dir . basename($_GET['download']); // Destination du fichier dans le répertoire local
+
+    // Télécharger le fichier depuis le serveur FTP vers le répertoire local
+    if (ftp_get($ftp_conn, $local_file, $fileToDownload, FTP_BINARY)) {
+        $message = "Le fichier a été téléchargé avec succès dans le répertoire 'downloads'.";
+    } else {
+        $message = "Erreur lors du téléchargement du fichier.";
+    }
+    header("Location: index.php");
+    exit;
+}
+
 // Fermeture de la connexion FTP
 ftp_close($ftp_conn);
 ?>
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -150,8 +166,10 @@ ftp_close($ftp_conn);
                     <td>
                         <a href="ftp://<?= $ftp_user ?>:<?= $ftp_password ?>@<?= $ftp_server . $file ?>" target="_blank">Visualiser</a> |
                         <a href="ftp://<?= $ftp_user ?>:<?= $ftp_password ?>@<?= $ftp_server . $file ?>" download>Télécharger</a> |
+                        <a href="?download=<?= urlencode(basename($file)) ?>" onclick="return confirm('Êtes-vous sûr de vouloir télécharger ce document ?');">Télécharger</a> |
                         <a href="?delete=<?= urlencode(basename($file)) ?>" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce document ?');">Supprimer</a>
                     </td>
+
                 </tr>
             <?php endforeach; ?>
         <?php else: ?>
