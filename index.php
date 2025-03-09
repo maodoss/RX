@@ -24,13 +24,11 @@ try {
 }
 
 // Récupération du nombre de documents depuis le serveur FTP
-$ftp_server = "192.168.1.11";  // Remplacez par l'adresse de votre serveur FTP
-$ftp_username = "ftpuser1";  // Remplacez par votre nom d'utilisateur FTP
-$ftp_password = "passer";  // Remplacez par votre mot de passe FTP
-
+$ftp_server = "192.168.1.11";  
+$ftp_username = "ftpuser1";  
+$ftp_password = "passer";  
 // Connexion au serveur FTP
 $ftp_conn = ftp_connect($ftp_server) or die("Impossible de se connecter à $ftp_server");
-
 // Connexion avec les identifiants
 $login = ftp_login($ftp_conn, $ftp_username, $ftp_password);
 
@@ -42,7 +40,6 @@ if (!$login) {
 
 // Spécifier le répertoire contenant les documents
 $ftp_directory = "/home/ftpuser1/ftp"; 
-
 // Changer de répertoire
 ftp_chdir($ftp_conn, $ftp_directory);
 

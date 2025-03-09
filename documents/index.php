@@ -7,7 +7,7 @@ ini_set('display_errors', 1);
 $ftp_server = "192.168.1.11";
 $ftp_user = "ftpuser1";
 $ftp_password = "passer";
-$ftp_upload_dir = "/home/ftpuser1/ftp"; // Répertoire distant où stocker les fichiers
+$ftp_upload_dir = "/home/ftpuser1/ftp/"; // Répertoire distant où stocker les fichiers
 
 $message = "";
 
@@ -24,7 +24,6 @@ if (!ftp_login($ftp_conn, $ftp_user, $ftp_password)) {
 if ($ftp_conn && ftp_login($ftp_conn, $ftp_user, $ftp_password)) {
 
     ftp_pasv($ftp_conn, true); // Mode passif si nécessaire
-    echo"connexion reussie";
     // Récupération de la liste des fichiers du répertoire
     $files = ftp_nlist($ftp_conn, $ftp_upload_dir);
     
