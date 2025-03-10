@@ -2,7 +2,9 @@
 // create.php
 
 require_once '../config/database.php';
-require 'PHPMailer/PHPMailerAutoload.php';
+require '../PHPMailer-master/src/PHPMailer.php';
+require '../PHPMailer-master/src/SMTP.php';
+require '../PHPMailer-master/src/Exception.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Récupération des valeurs du formulaire
