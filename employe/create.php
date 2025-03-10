@@ -2,9 +2,12 @@
 // create.php
 
 require_once '../config/database.php';
+require 'vendor/autoload.php';
 require '../PHPMailer-master/src/PHPMailer.php';
 require '../PHPMailer-master/src/SMTP.php';
 require '../PHPMailer-master/src/Exception.php';
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
 $pdo_iredmail = new PDO('mysql:host=localhost;dbname=vmail', 'admin', 'passer123');
 $pdo_iredmail->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
@@ -60,8 +63,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // Fonction pour envoyer un e-mail de confirmation
 function sendConfirmationEmail($email) {
-    $mail = new PHPMailer\PHPMailer\PHPMailer();
-
+ 
+    $mail = new PHPMailer();
     // Configuration du serveur SMTP (en utilisant le serveur iRedMail)
     $mail->isSMTP();
     $mail->Host = '192.168.1.11';  // iRedMail utilise généralement le serveur local
