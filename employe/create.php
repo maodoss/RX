@@ -5,6 +5,8 @@ require_once '../config/database.php';
 require '../PHPMailer-master/src/PHPMailer.php';
 require '../PHPMailer-master/src/SMTP.php';
 require '../PHPMailer-master/src/Exception.php';
+$pdo_iredmail = new PDO('mysql:host=localhost;dbname=vmail', 'root', '');
+$pdo_iredmail->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Récupération des valeurs du formulaire
@@ -40,13 +42,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Insertion du domaine dans la table `domain` de iRedMail (si nécessaire)
         $sqlDomain = "INSERT INTO domain (domain, description, active) 
                       VALUES ('$domain', 'Mon domaine principal', 1)";
-        $pdo->query($sqlDomain);
+        $pdo_iredmail->query($sqlDomain);
 
         // Insertion de l'utilisateur dans la table `mailbox` de iRedMail
         // Utiliser un mot de passe généré ou par défaut
         $sqlUser = "INSERT INTO mailbox (username, password, domain, maildir, quota, active)
                     VALUES ('$username','passer', '$domain', 'vmail/$username', 104857600, 1)";
-        $pdo->query($sqlUser);
+        $pdo_iredmail->query($sqlUser);
 
         // 3. Envoyer un e-mail de confirmation
         sendConfirmationEmail($email);
