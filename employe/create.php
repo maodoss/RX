@@ -1,15 +1,6 @@
 <?php
-// create.php
-
+// add_employe.php
 require_once '../config/database.php';
-require '../vendor/autoload.php';
-require '../PHPMailer-master/src/PHPMailer.php';
-require '../PHPMailer-master/src/SMTP.php';
-require '../PHPMailer-master/src/Exception.php';
-use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\Exception;
-$pdo_iredmail = new PDO('mysql:host=localhost;dbname=vmail', 'admin', 'passer123');
-$pdo_iredmail->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Récupération des valeurs du formulaire
@@ -19,11 +10,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $telephone = $_POST['telephone'] ?? '';
     $poste     = $_POST['poste']     ?? '';
     $salaire   = $_POST['salaire']   ?? 0;
-    $domain    = explode('@', $email)[1]; // Extraire le domaine de l'e-mail
-    $username  = explode('@', $email)[0]; // Extraire le nom d'utilisateur
 
     try {
-        // 1. Préparation de la requête d’insertion dans votre base de données (employés)
+        // Préparation de la requête d’insertion
         $sql = "INSERT INTO employes (nom, prenom, email, telephone, poste, salaire)
                 VALUES (:nom, :prenom, :email, :telephone, :poste, :salaire)";
         $stmt = $pdo->prepare($sql);
@@ -38,59 +27,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ':salaire'   => $salaire
         ]);
 
-        echo "Employé ajouté avec succès !<br>";
-
-        // 2. Ajouter l'utilisateur dans la base de données iRedMail (vmail)
-
-        // Insertion du domaine dans la table `domain` de iRedMail (si nécessaire)
-        // $sqlDomain = "INSERT INTO domain (domain, description, active) 
-        //               VALUES ('$domain', 'Mon domaine principal', 1)";
-        // $pdo_iredmail->query($sqlDomain);
-
-        // Insertion de l'utilisateur dans la table `mailbox` de iRedMail
-        // Utiliser un mot de passe généré ou par défaut
-        $sqlUser = "INSERT INTO mailbox (username, password, domain, maildir, quota, active)
-                    VALUES ('$username','passer', '$domain', 'vmail/$username', 104857600, 1)";
-        $pdo_iredmail->query($sqlUser);
-
-        // 3. Envoyer un e-mail de confirmation
-        sendConfirmationEmail($email);
-
+        echo "Employé ajouté avec succès !";
     } catch (PDOException $e) {
         echo "Erreur lors de l'ajout : " . $e->getMessage();
     }
 }
-
-// Fonction pour envoyer un e-mail de confirmation
-function sendConfirmationEmail($email) {
- 
-    $mail = new PHPMailer();
-    // Configuration du serveur SMTP (en utilisant le serveur iRedMail)
-    $mail->isSMTP();
-    $mail->Host = '192.168.1.11';  // iRedMail utilise généralement le serveur local
-    $mail->SMTPAuth = true;
-    $mail->Username = 'postmaster@vooz.sn';  // Utilisateur admin sur votre serveur iRedMail
-    $mail->Password = 'passer123';  // Mot de passe du compte admin
-    $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-    $mail->Port = 587;
-
-    // Destinataire et expéditeur
-    $mail->setFrom('postmaster@vooz.sn', 'Admin');
-    $mail->addAddress($email, 'Nouveau utilisateur');  // L'utilisateur nouvellement créé
-
-    // Contenu de l'e-mail
-    $mail->isHTML(true);
-    $mail->Subject = 'Confirmation de création de compte';
-    $mail->Body    = 'Bonjour,<br>Votre compte a été créé avec succès. Vous pouvez maintenant vous connecter à votre compte avec l\'adresse e-mail ' . $email . '.';
-
-    if ($mail->send()) {
-        echo "E-mail de confirmation envoyé à $email.\n";
-    } else {
-        echo "Erreur lors de l'envoi de l'e-mail: " . $mail->ErrorInfo . "\n";
-    }
-}
 ?>
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -214,7 +156,4 @@ function sendConfirmationEmail($email) {
     </form>
 </div>
 </body>
-</html>
-
-
-
+</html> 
