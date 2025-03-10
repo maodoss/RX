@@ -60,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // Fonction pour envoyer un e-mail de confirmation
 function sendConfirmationEmail($email) {
-    $mail = new PHPMailer;
+    $mail = new PHPMailer\PHPMailer\PHPMailer();
 
     // Configuration du serveur SMTP (en utilisant le serveur iRedMail)
     $mail->isSMTP();
