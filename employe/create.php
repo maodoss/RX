@@ -40,9 +40,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // 2. Ajouter l'utilisateur dans la base de données iRedMail (vmail)
 
         // Insertion du domaine dans la table `domain` de iRedMail (si nécessaire)
-        $sqlDomain = "INSERT INTO domain (domain, description, active) 
-                      VALUES ('$domain', 'Mon domaine principal', 1)";
-        $pdo_iredmail->query($sqlDomain);
+        // $sqlDomain = "INSERT INTO domain (domain, description, active) 
+        //               VALUES ('$domain', 'Mon domaine principal', 1)";
+        // $pdo_iredmail->query($sqlDomain);
 
         // Insertion de l'utilisateur dans la table `mailbox` de iRedMail
         // Utiliser un mot de passe généré ou par défaut
