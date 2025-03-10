@@ -2,7 +2,7 @@
 // create.php
 
 require_once '../config/database.php';
-require 'vendor/autoload.php';
+require '../vendor/autoload.php';
 require '../PHPMailer-master/src/PHPMailer.php';
 require '../PHPMailer-master/src/SMTP.php';
 require '../PHPMailer-master/src/Exception.php';
