@@ -5,7 +5,7 @@ require_once '../config/database.php';
 require '../PHPMailer-master/src/PHPMailer.php';
 require '../PHPMailer-master/src/SMTP.php';
 require '../PHPMailer-master/src/Exception.php';
-$pdo_iredmail = new PDO('mysql:host=localhost;dbname=vmail', 'root', '');
+$pdo_iredmail = new PDO('mysql:host=localhost;dbname=vmail', 'admin', 'passer123');
 $pdo_iredmail->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
